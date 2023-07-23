@@ -10,10 +10,10 @@ class FormulaOneAI:
         self.messages = [{"role": "system", "content": "You are a helpful assistant."}]
 
     def ask(self, prompt, max_tokens=100):
+        self.messages.append({"role": "user", "content": prompt})
         response = openai.ChatCompletion.create(
             model=self.gpt_model,
             messages=self.messages,
-            function=[],
             max_tokens=max_tokens,
         )
         return response["choices"][0]["message"]["content"]
