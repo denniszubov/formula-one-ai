@@ -6,7 +6,7 @@ from functions import function_schemas, get_driver_standings
 
 
 class FormulaOneAI:
-    def __init__(self, api_key, gpt_model="gpt-4"):
+    def __init__(self, api_key, gpt_model="gpt-3.5-turbo"):
         self.api_key = api_key
         openai.api_key = self.api_key
 
