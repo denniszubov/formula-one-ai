@@ -1,9 +1,7 @@
-from typing import Tuple
-
 import requests
 
 
-def get_driver_standings() -> list[Tuple[int, str]]:
+def get_driver_standings() -> list[tuple[int, str]]:
     """Get the driver standings"""
     url = "http://ergast.com/api/f1/current/driverStandings.json"
 
