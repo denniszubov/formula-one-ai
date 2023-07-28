@@ -2,7 +2,8 @@ import os
 
 import streamlit as st
 from dotenv import load_dotenv
-from f1_ai import FormulaOneAI
+
+from f1.ai import FormulaOneAI
 
 load_dotenv()
 

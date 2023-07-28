@@ -2,7 +2,8 @@ import json
 from typing import Any, Tuple
 
 import openai
-from functions import function_schemas, get_driver_standings
+
+from f1.functions import function_schemas, get_driver_standings
 
 
 class FormulaOneAI:
