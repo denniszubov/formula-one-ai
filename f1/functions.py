@@ -1,9 +1,13 @@
 import requests
 
 
-def get_driver_standings() -> list[tuple[int, str]]:
-    """Get the driver standings"""
-    url = "http://ergast.com/api/f1/current/driverStandings.json"
+def get_driver_standings(year: int) -> list[tuple[int, str]]:
+    """Get the driver standings.
+
+    The input parameter year is used to specify the year in
+    which to fetch the standings
+    """
+    url = f"http://ergast.com/api/f1/{year}/driverStandings.json"
 
     response = requests.get(url)
     data = response.json()
