@@ -55,3 +55,11 @@ def create_function_schema(func: Callable[..., Any]) -> FunctionSchema:
             schema["parameters"]["required"].append(parameter_name)
 
     return schema
+
+
+def generate_schemas(funcs: list[Callable[..., Any]]) -> list[FunctionSchema]:
+    """
+    Generates JSON schemas for a list of Python functions.
+    Used to generate schemas for GPT to use function calling
+    """
+    return [create_function_schema(func) for func in funcs]
