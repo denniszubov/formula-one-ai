@@ -4,6 +4,7 @@ from typing import Any, Callable, Optional
 import openai
 
 from f1.helpers import generate_schemas
+from f1.prompts import SYSTEM_CONTENT
 
 
 class FormulaOneAI:
@@ -19,7 +20,7 @@ class FormulaOneAI:
         openai.api_key = self.api_key
 
         self.gpt_model = gpt_model
-        self.messages = [{"role": "system", "content": "You are a helpful assistant."}]
+        self.messages = [{"role": "system", "content": SYSTEM_CONTENT}]
         self.function_schema = generate_schemas(funcs)
         self.function_mapping = {func.__name__: func for func in funcs}
 
