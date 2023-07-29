@@ -2,6 +2,7 @@ import json
 from typing import Any, Callable, Optional
 
 import openai
+import pandas as pd
 
 from f1.helpers import generate_schemas
 from f1.prompts import SYSTEM_CONTENT
@@ -29,7 +30,7 @@ class FormulaOneAI:
         self.messages.append({"role": "user", "content": prompt})
         response = self._chat_completion()
         while response.get("function_call"):
-            function_name, kwargs = self.parse_response(response)
+            function_name, kwargs = self._parse_response(response)
             func = self.function_mapping[function_name]
             function_response = func(**kwargs)
 
@@ -38,7 +39,7 @@ class FormulaOneAI:
                 {
                     "role": "function",
                     "name": function_name,
-                    "content": str(function_response),
+                    "content": self._serialize_response(function_response),
                 }
             )
 
@@ -58,7 +59,14 @@ class FormulaOneAI:
 
         return message
 
-    def parse_response(self, message: dict[str, Any]) -> tuple[str, Any]:
+    def _parse_response(self, message: dict[str, Any]) -> tuple[str, Any]:
         return message["function_call"]["name"], json.loads(
             message["function_call"]["arguments"]
         )
+
+    def _serialize_response(self, response: Any) -> str:
+        if isinstance(response, pd.DataFrame):
+            if response.empty:
+                return "{}"
+            return response.to_json()
+        return json.dumps(response)
