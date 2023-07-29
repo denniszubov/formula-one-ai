@@ -9,5 +9,9 @@ a 4 digit int representing the year of the season for the query. The round
 parameter is a 1 or 2 digit int representing the race within the season for
 the query.
 
+If you need the round number to get some data but you only know the circuit
+or race name then you can call `get_season_info` first to get the round number
+of that race.
+
 Today is {date.today()}
 """
