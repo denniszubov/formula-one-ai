@@ -1,6 +1,8 @@
 import pandas as pd
 import requests
 
+BASE_URL = "http://ergast.com/api/f1"
+
 
 def get_driver_standings(season: int, round: int = 0) -> pd.DataFrame:
     """Get the driver standings at the end of a specific season or
@@ -19,9 +21,9 @@ def get_driver_standings(season: int, round: int = 0) -> pd.DataFrame:
         and the driver last names.
     """
     if round:
-        url = f"http://ergast.com/api/f1/{season}/{round}/driverStandings.json"
+        url = f"{BASE_URL}/{season}/{round}/driverStandings.json"
     else:
-        url = f"http://ergast.com/api/f1/{season}/driverStandings.json"
+        url = f"{BASE_URL}/{season}/driverStandings.json"
 
     response = requests.get(url)
     data = response.json()
@@ -55,9 +57,9 @@ def get_constructors_standings(season: int, round: int = 0) -> pd.DataFrame:
         and the constructor name.
     """
     if round:
-        url = f"http://ergast.com/api/f1/{season}/{round}/constructorStandings.json"
+        url = f"{BASE_URL}/{season}/{round}/constructorStandings.json"
     else:
-        url = f"http://ergast.com/api/f1/{season}/constructorStandings.json"
+        url = f"{BASE_URL}/{season}/constructorStandings.json"
 
     response = requests.get(url)
     data = response.json()
@@ -76,4 +78,43 @@ def get_constructors_standings(season: int, round: int = 0) -> pd.DataFrame:
     return constructors_standings
 
 
-f1_data = [get_driver_standings, get_constructors_standings]
+def get_season_info(season: int) -> pd.DataFrame:
+    """Get information about a specific F1 season. This will return
+    all the races in the season, with information about round number,
+    race name, date, circuit name, and country.
+
+    Args:
+        season (int): used to specify the year in which
+            to fetch the season info
+
+    Return:
+        pd.DataFrame: a dataframe representing the season info with
+        info about the races. It has the race round, race name, date,
+        circuit name, and country.
+    """
+    url = f"{BASE_URL}/{season}.json"
+
+    response = requests.get(url)
+    data = response.json()
+
+    races = data["MRData"]["RaceTable"]["Races"]
+
+    round_numbers = [x["round"] for x in races]
+    race_names = [x["raceName"] for x in races]
+    dates = [x["date"] for x in races]
+    circuit_names = [x["Circuit"]["circuitName"] for x in races]
+    countries = [x["Circuit"]["Location"]["country"] for x in races]
+    season_info = pd.DataFrame(
+        {
+            "round_number": round_numbers,
+            "race_name": race_names,
+            "date": dates,
+            "circuit_name": circuit_names,
+            "country": countries,
+        }
+    )
+
+    return season_info
+
+
+f1_data = [get_driver_standings, get_constructors_standings, get_season_info]
