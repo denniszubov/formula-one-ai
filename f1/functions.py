@@ -2,18 +2,26 @@ import pandas as pd
 import requests
 
 
-def get_driver_standings(year: int) -> pd.DataFrame:
-    """Get the driver standings at the end of a specific season.
-    If the season hasn't ended you will get the current standings.
+def get_driver_standings(season: int, round: int = 0) -> pd.DataFrame:
+    """Get the driver standings at the end of a specific season or
+    after a specific round in a season. If the round parameter is not
+    specified then it will fetch the standings at the end of the
+    specific season. If the season hasn't ended you will get the
+    current standings.
 
     Args:
-        year (int): used to specify the year in which
-        to fetch the standings
+        season (int): used to specify the year in which
+            to fetch the standings
+        round (int): used to specify the round in which
+            to fetch the standings. Not required
     Returns:
         pd.DataFrame: a dataframe representing the driver positions
         and the driver last names.
     """
-    url = f"http://ergast.com/api/f1/{year}/driverStandings.json"
+    if round:
+        url = f"http://ergast.com/api/f1/{season}/{round}/driverStandings.json"
+    else:
+        url = f"http://ergast.com/api/f1/{season}/driverStandings.json"
 
     response = requests.get(url)
     data = response.json()
@@ -30,18 +38,26 @@ def get_driver_standings(year: int) -> pd.DataFrame:
     return driver_standings
 
 
-def get_constructors_standings(year: int) -> pd.DataFrame:
-    """Get the constructor standings at the end of a specific season.
-    If the season hasn't ended you will get the current standings.
+def get_constructors_standings(season: int, round: int = 0) -> pd.DataFrame:
+    """Get the constructor standings at the end of a specific season or
+    after a specific round in a season. If the round parameter is not
+    specified then it will fetch the standings at the end of the
+    specific season. If the season hasn't ended you will get the
+    current standings.
 
     Args:
-        year (int): used to specify the year in which
-        to fetch the standings
+        season (int): used to specify the year in which
+            to fetch the standings
+        round (int): used to specify the round in which
+            to fetch the standings. Not required
     Returns:
         pd.DataFrame: a dataframe representing the constructor position
         and the constructor name.
     """
-    url = f"http://ergast.com/api/f1/{year}/constructorStandings.json"
+    if round:
+        url = f"http://ergast.com/api/f1/{season}/{round}/constructorStandings.json"
+    else:
+        url = f"http://ergast.com/api/f1/{season}/constructorStandings.json"
 
     response = requests.get(url)
     data = response.json()
