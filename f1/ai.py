@@ -20,11 +20,12 @@ class FormulaOneAI:
         openai.api_key = self.api_key
 
         self.gpt_model = gpt_model
-        self.messages = [{"role": "system", "content": SYSTEM_CONTENT}]
+        self.messages: list[dict[str, Any]] = []
         self.function_schema = generate_schemas(funcs)
         self.function_mapping = {func.__name__: func for func in funcs}
 
     def ask(self, prompt):
+        self.messages = [{"role": "system", "content": SYSTEM_CONTENT}]
         self.messages.append({"role": "user", "content": prompt})
         response = self._chat_completion()
         while response.get("function_call"):
@@ -51,7 +52,7 @@ class FormulaOneAI:
             model=self.gpt_model,
             messages=self.messages,
             functions=self.function_schema,
-            max_tokens=150,
+            max_tokens=200,
         )
         message = response["choices"][0]["message"]
 
