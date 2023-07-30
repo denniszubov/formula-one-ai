@@ -8,7 +8,7 @@ from pandasai import PandasAI
 from pandasai.llm.openai import OpenAI
 
 from f1.helpers import generate_schemas
-from f1.prompts import SYSTEM_CONTENT
+from f1.prompts import SYSTEM_CONTENT, response_too_long_prompt
 
 
 class FormulaOneAI:
@@ -33,8 +33,10 @@ class FormulaOneAI:
         self.function_schema = generate_schemas(funcs)
         self.function_mapping = {func.__name__: func for func in funcs}
 
-        # Keep track of last returned dataframe for PandasAI
+        # Keep track of last called function, last returned dataframe, and last returned function response
+        self.last_called_function: str = ""
         self.last_returned_df: pd.DataFrame = pd.DataFrame({})
+        self.last_returned_function_response: Any = None
 
         # Create PandasAI object
         llm = OpenAI(api_token=self.api_key)
@@ -51,22 +53,19 @@ class FormulaOneAI:
             func = self.function_mapping[function_name]
             function_response = func(**kwargs)
 
+            self.last_called_function = function_name
+            self.last_returned_function_response = function_response
+
             if isinstance(function_response, pd.DataFrame):
                 self.last_returned_df = function_response
 
-            # extend conversation with function response
-            self.messages.append(
-                {
-                    "role": "function",
-                    "name": function_name,
-                    "content": self._serialize_response(function_response),
-                }
-            )
+            serialized_response = self._serialize_response(function_response)
+
+            self._add_function_response(serialized_response)
 
             response = self._chat_completion()
             self.messages.append(response)  # extend conversation with assistant's reply
 
-        self.messages.append(response)  # Add latest GPT assistant response
         return response["content"]
 
     def ask_pandasai(self, prompt: str) -> Any:
@@ -86,6 +85,43 @@ class FormulaOneAI:
             raise RuntimeError("Empty pd.DataFrame being given to PandasAI")
 
         return self.pandas_ai(self.last_returned_df, prompt)
+
+    def _add_function_response(self, serialized_response: str) -> None:
+        """Create a response for GPT after receiving the function response.
+
+        Add the response to the conversation."""
+        function_response = self.last_returned_function_response
+        function_name = self.last_called_function
+
+        if self._response_is_too_long(serialized_response):
+            # We will not send back to the whole response to GPT
+            # We will send back info about the response and tell it
+            # to use PandasAI to access the data
+
+            # Check that response is a dataframe
+            if not isinstance(function_response, pd.DataFrame):
+                response_type = type(function_response)
+                raise RuntimeError(
+                    f"Function was too long to return. Type: {response_type}"
+                )
+
+            content = response_too_long_prompt(function_name, function_response)
+            # extend conversation with custom user response
+            self.messages.append(
+                {
+                    "role": "user",
+                    "content": content,
+                }
+            )
+        else:
+            # extend conversation with function response
+            self.messages.append(
+                {
+                    "role": "function",
+                    "name": function_name,
+                    "content": serialized_response,
+                }
+            )
 
     def _chat_completion(self) -> dict[str, Any]:
         response = openai.ChatCompletion.create(
