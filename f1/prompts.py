@@ -1,5 +1,7 @@
 from datetime import date
 
+import pandas as pd
+
 SYSTEM_CONTENT = f"""You are a helpful assistant that will answer
 Formula 1 related queries.
 
@@ -14,4 +16,19 @@ or race name then you can call `get_season_info` first to get the round number
 of that race.
 
 Today is {date.today()}
+"""
+
+
+def response_too_long_prompt(function_name: str, df: pd.DataFrame):
+    num_rows, num_columns = df.shape
+    df_head = df.head()
+    return f"""The function {function_name} returned a pandas dataframe.
+
+The dataframe has {num_rows} rows and {num_columns} columns.
+This is the metadata of the dataframe:
+{df_head}.
+
+This dataframe was too long to return, but the ask_pandasai function
+has access to this dataframe. Call ask_pandasai with the appropriate prompt
+to get a result to return to the user.
 """

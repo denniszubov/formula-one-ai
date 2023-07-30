@@ -3,9 +3,12 @@ from typing import Any, Callable, Optional
 
 import openai
 import pandas as pd
+import tiktoken
+from pandasai import PandasAI
+from pandasai.llm.openai import OpenAI
 
 from f1.helpers import generate_schemas
-from f1.prompts import SYSTEM_CONTENT
+from f1.prompts import SYSTEM_CONTENT, response_too_long_prompt
 
 
 class FormulaOneAI:
@@ -22,31 +25,103 @@ class FormulaOneAI:
 
         self.gpt_model = gpt_model
         self.messages: list[dict[str, Any]] = []
+
+        # Add PandasAI function to input F1 data functions
+        funcs.append(self.ask_pandasai)
+
+        # Generate schemas for GPT and function mappings
         self.function_schema = generate_schemas(funcs)
         self.function_mapping = {func.__name__: func for func in funcs}
+
+        # Keep track of last called function, last returned dataframe, and last returned function response
+        self.last_called_function: str = ""
+        self.last_returned_df: pd.DataFrame = pd.DataFrame({})
+        self.last_returned_function_response: Any = None
+
+        # Create PandasAI object
+        llm = OpenAI(api_token=self.api_key)
+        self.pandas_ai = PandasAI(llm)
 
     def ask(self, prompt):
         self.messages = [{"role": "system", "content": SYSTEM_CONTENT}]
         self.messages.append({"role": "user", "content": prompt})
         response = self._chat_completion()
+        self.messages.append(response)  # extend conversation with assistant's reply
+
         while response.get("function_call"):
             function_name, kwargs = self._parse_response(response)
             func = self.function_mapping[function_name]
             function_response = func(**kwargs)
 
+            self.last_called_function = function_name
+            self.last_returned_function_response = function_response
+
+            if isinstance(function_response, pd.DataFrame):
+                self.last_returned_df = function_response
+
+            serialized_response = self._serialize_response(function_response)
+
+            self._add_function_response(serialized_response)
+
+            response = self._chat_completion()
             self.messages.append(response)  # extend conversation with assistant's reply
+
+        return response["content"]
+
+    def ask_pandasai(self, prompt: str) -> Any:
+        """Function that makes use of PandasAI to run data analysis on a pd.DataFrame
+        or create plots of graphs using the pd.DataFrame. This function has access
+        to the most recently returned pd.DataFrame.
+
+        Args:
+            prompt (str): The prompt to give to the AI to run the data analysis or to
+                create plots or graphs. The prompt will take the form of natural language
+                (e.g. "Find the French driver with the most amount of wins between 2000
+                and 2022 in the dataframe")
+        Return:
+            Any: The response to the prompt.
+        """
+        if self.last_returned_df.empty:
+            raise RuntimeError("Empty pd.DataFrame being given to PandasAI")
+
+        return self.pandas_ai(self.last_returned_df, prompt)
+
+    def _add_function_response(self, serialized_response: str) -> None:
+        """Create a response for GPT after receiving the function response.
+
+        Add the response to the conversation."""
+        function_response = self.last_returned_function_response
+        function_name = self.last_called_function
+
+        if self._response_is_too_long(serialized_response):
+            # We will not send back to the whole response to GPT
+            # We will send back info about the response and tell it
+            # to use PandasAI to access the data
+
+            # Check that response is a dataframe
+            if not isinstance(function_response, pd.DataFrame):
+                response_type = type(function_response)
+                raise RuntimeError(
+                    f"Function was too long to return. Type: {response_type}"
+                )
+
+            content = response_too_long_prompt(function_name, function_response)
+            # extend conversation with custom user response
+            self.messages.append(
+                {
+                    "role": "user",
+                    "content": content,
+                }
+            )
+        else:
+            # extend conversation with function response
             self.messages.append(
                 {
                     "role": "function",
                     "name": function_name,
-                    "content": self._serialize_response(function_response),
+                    "content": serialized_response,
                 }
             )
-
-            response = self._chat_completion()
-
-        self.messages.append(response)  # Add latest GPT assistant response
-        return response["content"]
 
     def _chat_completion(self) -> dict[str, Any]:
         response = openai.ChatCompletion.create(
@@ -70,3 +145,19 @@ class FormulaOneAI:
                 return "{}"
             return response.to_json()
         return json.dumps(response)
+
+    def _get_token_length(self, prompt: str) -> int:
+        """Get the token length of the given prompt
+
+        This is useful for checking the tokens before sending a
+        response back to GPT in the case that the response is
+        too long"""
+        encoder = tiktoken.encoding_for_model(self.gpt_model)
+        encoding = encoder.encode(prompt)
+        return len(encoding)
+
+    def _response_is_too_long(self, prompt: str) -> bool:
+        """Check if the response is too long to give to GPT.
+
+        Currently our token limit is set at 1000 tokens"""
+        return self._get_token_length(prompt) > 1000
