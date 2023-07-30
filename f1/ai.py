@@ -3,6 +3,8 @@ from typing import Any, Callable, Optional
 
 import openai
 import pandas as pd
+from pandasai import PandasAI
+from pandasai.llm.openai import OpenAI
 
 from f1.helpers import generate_schemas
 from f1.prompts import SYSTEM_CONTENT
@@ -24,7 +26,13 @@ class FormulaOneAI:
         self.messages: list[dict[str, Any]] = []
         self.function_schema = generate_schemas(funcs)
         self.function_mapping = {func.__name__: func for func in funcs}
+
+        # Keep track of last returned dataframe for PandasAI
         self.last_returned_df: pd.DataFrame = pd.DataFrame({})
+
+        # Create PandasAI object
+        llm = OpenAI(api_token=self.api_key)
+        self.pandas_ai = PandasAI(llm)
 
     def ask(self, prompt):
         self.messages = [{"role": "system", "content": SYSTEM_CONTENT}]
