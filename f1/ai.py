@@ -24,6 +24,11 @@ class FormulaOneAI:
 
         self.gpt_model = gpt_model
         self.messages: list[dict[str, Any]] = []
+
+        # Add PandasAI function to input F1 data functions
+        funcs.append(self.ask_pandasai)
+
+        # Generate schemas for GPT and function mappings
         self.function_schema = generate_schemas(funcs)
         self.function_mapping = {func.__name__: func for func in funcs}
 
@@ -59,6 +64,24 @@ class FormulaOneAI:
 
         self.messages.append(response)  # Add latest GPT assistant response
         return response["content"]
+
+    def ask_pandasai(self, prompt: str) -> Any:
+        """Function that makes use of PandasAI to run data analysis on a pd.DataFrame
+        or create plots of graphs using the pd.DataFrame. This function has access
+        to the most recently returned pd.DataFrame.
+
+        Args:
+            prompt (str): The prompt to give to the AI to run the data analysis or to
+                create plots or graphs. The prompt will take the form of natural language
+                (e.g. "Find the French driver with the most amount of wins between 2000
+                and 2022 in the dataframe")
+        Return:
+            Any: The response to the prompt.
+        """
+        if self.last_returned_df.empty:
+            raise RuntimeError("Empty pd.DataFrame being given to PandasAI")
+
+        return self.pandas_ai(self.last_returned_df, prompt)
 
     def _chat_completion(self) -> dict[str, Any]:
         response = openai.ChatCompletion.create(
