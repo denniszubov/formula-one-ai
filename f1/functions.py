@@ -119,4 +119,61 @@ def get_season_info(season: int) -> pd.DataFrame:
     return season_info
 
 
+# Driver Information functions
+def get_driver_information(season: int = 0, round: int = 0) -> pd.DataFrame:
+    """Get driver information for the whole history of F1, for a season,
+    or for a specific round in a season.
+
+    The driver information contains a driver_id which is used to identify
+    drivers in other functions. You can use this function to get a list of all
+    drivers info to find the driver_id of a specific driver.
+
+    If you want to get all driver info, do not specify season or round. To
+    get info for a season, specify season only. If you want driver info for a
+    specific round, specify season and round.
+
+    Args:
+        season (int): used to specify the year in which
+            to fetch the driver info. Not required
+        round (int): used to specify the round in which
+            to fetch the driver info. Not required
+
+    Return:
+        pd.DataFrame: a dataframe representing the driver info. It contains
+        driver_id, first name, last name, date of birth, and nationality.
+    """
+    url = BASE_URL
+    if season:
+        url += f"/{season}"
+        if round:
+            url += f"/{round}"
+
+    # We are adding the `limit` arg to ensure we get all the drivers in one call.
+    # Otherwise, the limit default is 30
+
+    url += "/drivers.json?limit=10000"
+
+    response = requests.get(url)
+    data = response.json()
+
+    drivers = data["MRData"]["DriverTable"]["Drivers"]
+
+    driver_ids = [x["driverId"] for x in drivers]
+    first_names = [x["givenName"] for x in drivers]
+    last_names = [x["familyName"] for x in drivers]
+    date_of_births = [x["dateOfBirth"] for x in drivers]
+    nationalities = [x["nationality"] for x in drivers]
+    driver_info = pd.DataFrame(
+        {
+            "driver_id": driver_ids,
+            "first_name": first_names,
+            "last_name": last_names,
+            "date_of_birth": date_of_births,
+            "nationality": nationalities,
+        }
+    )
+
+    return driver_info
+
+
 f1_data = [get_driver_standings, get_constructors_standings, get_season_info]
