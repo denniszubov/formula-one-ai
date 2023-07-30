@@ -4,6 +4,7 @@ import requests
 BASE_URL = "http://ergast.com/api/f1"
 
 
+# Standings functions
 def get_driver_standings(season: int, round: int = 0) -> pd.DataFrame:
     """Get the driver standings at the end of a specific season or
     after a specific round in a season. If the round parameter is not
@@ -78,6 +79,7 @@ def get_constructors_standings(season: int, round: int = 0) -> pd.DataFrame:
     return constructors_standings
 
 
+# Season List functions
 def get_season_info(season: int) -> pd.DataFrame:
     """Get information about a specific F1 season. This will return
     all the races in the season, with information about round number,
