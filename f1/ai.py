@@ -44,6 +44,8 @@ class FormulaOneAI:
         self.messages = [{"role": "system", "content": SYSTEM_CONTENT}]
         self.messages.append({"role": "user", "content": prompt})
         response = self._chat_completion()
+        self.messages.append(response)  # extend conversation with assistant's reply
+
         while response.get("function_call"):
             function_name, kwargs = self._parse_response(response)
             func = self.function_mapping[function_name]
@@ -52,7 +54,7 @@ class FormulaOneAI:
             if isinstance(function_response, pd.DataFrame):
                 self.last_returned_df = function_response
 
-            self.messages.append(response)  # extend conversation with assistant's reply
+            # extend conversation with function response
             self.messages.append(
                 {
                     "role": "function",
@@ -62,6 +64,7 @@ class FormulaOneAI:
             )
 
             response = self._chat_completion()
+            self.messages.append(response)  # extend conversation with assistant's reply
 
         self.messages.append(response)  # Add latest GPT assistant response
         return response["content"]
