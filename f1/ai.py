@@ -24,6 +24,7 @@ class FormulaOneAI:
         self.messages: list[dict[str, Any]] = []
         self.function_schema = generate_schemas(funcs)
         self.function_mapping = {func.__name__: func for func in funcs}
+        self.last_returned_df: pd.DataFrame = pd.DataFrame({})
 
     def ask(self, prompt):
         self.messages = [{"role": "system", "content": SYSTEM_CONTENT}]
@@ -33,6 +34,9 @@ class FormulaOneAI:
             function_name, kwargs = self._parse_response(response)
             func = self.function_mapping[function_name]
             function_response = func(**kwargs)
+
+            if isinstance(function_response, pd.DataFrame):
+                self.last_returned_df = function_response
 
             self.messages.append(response)  # extend conversation with assistant's reply
             self.messages.append(
