@@ -3,6 +3,7 @@ from typing import Any, Callable, Optional
 
 import openai
 import pandas as pd
+import tiktoken
 from pandasai import PandasAI
 from pandasai.llm.openai import OpenAI
 
@@ -105,3 +106,19 @@ class FormulaOneAI:
                 return "{}"
             return response.to_json()
         return json.dumps(response)
+
+    def _get_token_length(self, prompt: str) -> int:
+        """Get the token length of the given prompt
+
+        This is useful for checking the tokens before sending a
+        response back to GPT in the case that the response is
+        too long"""
+        encoder = tiktoken.encoding_for_model(self.gpt_model)
+        encoding = encoder.encode(prompt)
+        return len(encoding)
+
+    def _response_is_too_long(self, prompt: str) -> bool:
+        """Check if the response is too long to give to GPT.
+
+        Currently our token limit is set at 1000 tokens"""
+        return self._get_token_length(prompt) > 1000
