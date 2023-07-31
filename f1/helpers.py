@@ -1,6 +1,8 @@
 import inspect
 from typing import Any, Callable, get_args, get_origin
 
+import requests
+
 from f1.typing import FunctionSchema
 
 SIMPLE_MAPPING = {
@@ -63,3 +65,21 @@ def generate_schemas(funcs: list[Callable[..., Any]]) -> list[FunctionSchema]:
     Used to generate schemas for GPT to use function calling
     """
     return [create_function_schema(func) for func in funcs]
+
+
+def get_most_recent_race() -> dict[str, str]:
+    """Get most recent race information. This will be given to GPT in the
+    system prompt to give it more context."""
+    url = "http://ergast.com/api/f1/current/last.json"
+
+    response = requests.get(url)
+    data = response.json()["MRData"]["RaceTable"]["Races"][0]
+
+    most_recent_race = {
+        "season": data["season"],
+        "round": data["round"],
+        "race_name": data["raceName"],
+        "circuit_name": data["Circuit"]["circuitName"],
+        "country": data["Circuit"]["Location"]["country"],
+    }
+    return most_recent_race

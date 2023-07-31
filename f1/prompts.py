@@ -2,6 +2,10 @@ from datetime import date
 
 import pandas as pd
 
+from f1.helpers import get_most_recent_race
+
+most_recent_race = get_most_recent_race()
+
 SYSTEM_CONTENT = f"""You are a helpful assistant that will answer
 Formula 1 related queries.
 
@@ -28,6 +32,9 @@ on a previously returned dataframe. This function cannot fetch data, it can only
 work with a dataframe that has been returned by other functions.
 
 Today is {date.today()}
+
+Here is some information about the most recent race:
+{most_recent_race}
 """
 
 
