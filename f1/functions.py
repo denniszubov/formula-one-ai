@@ -96,9 +96,7 @@ def get_season_info(season: int, cols: list[str]) -> pd.DataFrame:
             Only ask for the columns that you need, the less, the better.
 
     Return:
-        pd.DataFrame: a dataframe representing the season info with
-        info about the races. It has the race round, race name, date,
-        circuit name, and country.
+        pd.DataFrame: a dataframe representing the season inf
     """
     url = f"{BASE_URL}/{season}.json"
 
@@ -128,12 +126,13 @@ def get_season_info(season: int, cols: list[str]) -> pd.DataFrame:
 
 
 # Driver Information functions
-def get_driver_information(season: int = 0, round: int = 0) -> pd.DataFrame:
+def get_driver_information(
+    cols: list[str], season: int = 0, round: int = 0
+) -> pd.DataFrame:
     """Get driver information for the whole history of F1, for a season,
     or for a specific round in a season.
 
-    The driver information contains a driver_id which is used to identify
-    drivers in other functions. You can use this function to get a list of all
+    You can use this function to get a list of all
     drivers info to find the driver_id of a specific driver.
 
     If you want to get all driver info, do not specify season or round. To
@@ -141,14 +140,15 @@ def get_driver_information(season: int = 0, round: int = 0) -> pd.DataFrame:
     specific round, specify season and round.
 
     Args:
-        season (int): used to specify the year in which
-            to fetch the driver info. Not required
-        round (int): used to specify the round in which
-            to fetch the driver info. Not required
+        cols (list[str]): list of strings representing which columns
+            to return. The columns that are available to return are
+            ("driver_id", "first_name", "last_name", "date_of_birth", "nationality").
+            Only ask for the columns that you need, the less, the better.
+        season (int): used to specify the year. Not required
+        round (int): used to specify the round. Not required
 
     Return:
-        pd.DataFrame: a dataframe representing the driver info. It contains
-        driver_id, first name, last name, date of birth, and nationality.
+        pd.DataFrame: a dataframe representing the driver info.
     """
     url = BASE_URL
     if season:
@@ -171,15 +171,19 @@ def get_driver_information(season: int = 0, round: int = 0) -> pd.DataFrame:
     last_names = [x["familyName"] for x in drivers]
     date_of_births = [x["dateOfBirth"] for x in drivers]
     nationalities = [x["nationality"] for x in drivers]
-    driver_info = pd.DataFrame(
-        {
-            "driver_id": driver_ids,
-            "first_name": first_names,
-            "last_name": last_names,
-            "date_of_birth": date_of_births,
-            "nationality": nationalities,
-        }
-    )
+
+    list_mapping = {
+        "driver_id": driver_ids,
+        "first_name": first_names,
+        "last_name": last_names,
+        "date_of_birth": date_of_births,
+        "nationality": nationalities,
+    }
+    driver_info_dict = {}
+    for col in cols:
+        driver_info_dict[col] = list_mapping[col]
+
+    driver_info = pd.DataFrame(driver_info_dict)
 
     return driver_info
 

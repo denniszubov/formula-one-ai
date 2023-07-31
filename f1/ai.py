@@ -16,7 +16,7 @@ class FormulaOneAI:
         self,
         api_key: Optional[str],
         funcs: list[Callable[..., Any]],
-        gpt_model: str = "gpt-3.5-turbo",
+        gpt_model: str = "gpt-3.5-turbo-0613",
     ):
         if api_key is None:
             raise RuntimeError("API Key given is null")
