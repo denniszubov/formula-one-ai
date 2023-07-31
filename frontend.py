@@ -19,7 +19,7 @@ response = None
 with st.form(key="my_form"):
     user_input = st.text_input(
         "Formula 1 Question:",
-        "Who was the driver who won in 2016 beating the 2nd place driver? Name both drivers.",
+        "Who won the 2023 Spanish Grand Prix?",
     )
     submit_button = st.form_submit_button("Submit")
     question = user_input.strip()

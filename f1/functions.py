@@ -1,3 +1,5 @@
+from typing import Any, Callable
+
 import pandas as pd
 import requests
 
@@ -80,7 +82,7 @@ def get_constructors_standings(season: int, round: int = 0) -> pd.DataFrame:
 
 
 # Season List functions
-def get_season_info(season: int) -> pd.DataFrame:
+def get_season_info(season: int, cols: list[str]) -> pd.DataFrame:
     """Get information about a specific F1 season. This will return
     all the races in the season, with information about round number,
     race name, date, circuit name, and country.
@@ -88,6 +90,10 @@ def get_season_info(season: int) -> pd.DataFrame:
     Args:
         season (int): used to specify the year in which
             to fetch the season info
+        cols (list[str]): list of strings representing which columns
+            to return. The columns that are available to return are
+            ("round_number", "race_name", "date", "circuit_name", "country").
+            Only ask for the columns that you need, the less, the better.
 
     Return:
         pd.DataFrame: a dataframe representing the season info with
@@ -106,16 +112,18 @@ def get_season_info(season: int) -> pd.DataFrame:
     dates = [x["date"] for x in races]
     circuit_names = [x["Circuit"]["circuitName"] for x in races]
     countries = [x["Circuit"]["Location"]["country"] for x in races]
-    season_info = pd.DataFrame(
-        {
-            "round_number": round_numbers,
-            "race_name": race_names,
-            "date": dates,
-            "circuit_name": circuit_names,
-            "country": countries,
-        }
-    )
 
+    list_mapping = {
+        "round_number": round_numbers,
+        "race_name": race_names,
+        "date": dates,
+        "circuit_name": circuit_names,
+        "country": countries,
+    }
+    season_info_dict = {}
+    for col in cols:
+        season_info_dict[col] = list_mapping[col]
+    season_info = pd.DataFrame(season_info_dict)
     return season_info
 
 
@@ -176,4 +184,9 @@ def get_driver_information(season: int = 0, round: int = 0) -> pd.DataFrame:
     return driver_info
 
 
-f1_data = [get_driver_standings, get_constructors_standings, get_season_info]
+f1_data: list[Callable[..., Any]] = [
+    get_driver_standings,
+    get_constructors_standings,
+    get_season_info,
+    get_driver_information,
+]
