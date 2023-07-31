@@ -69,15 +69,19 @@ class FormulaOneAI:
         return response["content"]
 
     def ask_pandasai(self, prompt: str) -> Any:
-        """Function that makes use of PandasAI to run data analysis on a pd.DataFrame
-        or create plots of graphs using the pd.DataFrame. This function has access
-        to the most recently returned pd.DataFrame.
+        """Function that can run data analysis on a pd.DataFrame or create plots or
+        graphs.
+
+        This function cannot fetch any data. It can only be called after getting
+        data from another function first.
+
+        This function has access to the most recently returned pd.DataFrame.
 
         Args:
-            prompt (str): The prompt to give to the AI to run the data analysis or to
+            prompt (str): The prompt to run the data analysis or to
                 create plots or graphs. The prompt will take the form of natural language
-                (e.g. "Find the French driver with the most amount of wins between 2000
-                and 2022 in the dataframe")
+                (e.g. if you want to find a driver_id from driver info, then you can have
+                the prompt as, "Get me the driver_id of driver x from the dataframe")
         Return:
             Any: The response to the prompt.
         """
