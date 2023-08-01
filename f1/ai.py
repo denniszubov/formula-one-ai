@@ -1,4 +1,6 @@
 import json
+import os
+import shutil
 from typing import Any, Callable, Optional
 
 import openai
@@ -42,9 +44,17 @@ class FormulaOneAI:
         llm = OpenAI(api_token=self.api_key)
         self.pandas_ai = PandasAI(llm, save_charts=True, save_charts_path="f1")
 
+        # Delete any graphs if there are any
+        self._delete_all_graphs("f1/exports/charts")
+
     def ask(self, prompt):
+        # Delete old graphs
+        self._delete_all_graphs("f1/exports/charts")
+
+        # Add initial conversation messages
         self.messages = [{"role": "system", "content": SYSTEM_CONTENT}]
         self.messages.append({"role": "user", "content": prompt})
+
         response = self._chat_completion()
         self.messages.append(response)  # extend conversation with assistant's reply
 
@@ -89,6 +99,17 @@ class FormulaOneAI:
             raise RuntimeError("Empty pd.DataFrame being given to PandasAI")
 
         return self.pandas_ai(self.last_returned_df, prompt)
+
+    def _delete_all_graphs(self, dir_name) -> None:
+        """Delete all the previously created graphs"""
+        if not os.path.isdir(dir_name):
+            return
+
+        # Get subdirectories
+        subdirectories = [f.path for f in os.scandir(dir_name) if f.is_dir()]
+        for subdir in subdirectories:
+            # Delete each subdirectory
+            shutil.rmtree(subdir)
 
     def _add_function_response(self, serialized_response: str) -> None:
         """Create a response for GPT after receiving the function response.
