@@ -37,7 +37,10 @@ if response:
 
 
 # Get the subdirectories
-subdirectories = get_directories(dir_name)
+if os.path.isdir(dir_name):
+    subdirectories = get_directories(dir_name)
+else:
+    subdirectories = []
 
 if subdirectories:
     st.markdown("**Generated Graphs:**")
