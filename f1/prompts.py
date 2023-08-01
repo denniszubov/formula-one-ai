@@ -27,8 +27,8 @@ number that you just retrieved.
 If you need to know the driver_id of a driver, you can call get_driver_information
 to retrieve driver_ids.
 
-The ask_pandasai function is able to create plots/graphs of perform data analysis
-on a previously returned dataframe. This function cannot fetch data, it can only
+The data_analysis and create_chart functions are able to create plots/graphs or perform data analysis
+on a previously returned dataframe. These functions cannot fetch data, they can only
 work with a dataframe that has been returned by other functions.
 
 Today is {date.today()}
