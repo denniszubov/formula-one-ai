@@ -24,7 +24,7 @@ with st.form(key="my_form"):
     submit_button = st.form_submit_button("Submit")
     question = user_input.strip()
 
-    if submit_button or user_input:
+    if submit_button:
         response = f1_ai.ask(question)
 
 if response:
