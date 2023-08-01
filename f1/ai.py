@@ -29,7 +29,8 @@ class FormulaOneAI:
         self.messages: list[dict[str, Any]] = []
 
         # Add PandasAI function to input F1 data functions
-        funcs.append(self.ask_pandasai)
+        funcs.append(self.data_analysis)
+        funcs.append(self.create_chart)
 
         # Generate schemas for GPT and function mappings
         self.function_schema = generate_schemas(funcs)
@@ -78,9 +79,8 @@ class FormulaOneAI:
 
         return response["content"]
 
-    def ask_pandasai(self, prompt: str) -> Any:
-        """Function that can run data analysis on a pd.DataFrame or create plots or
-        graphs.
+    def data_analysis(self, prompt: str) -> Any:
+        """Function that can run data analysis on a pd.DataFrame.
 
         This function cannot fetch any data. It can only be called after getting
         data from another function first.
@@ -88,10 +88,33 @@ class FormulaOneAI:
         This function has access to the most recently returned pd.DataFrame.
 
         Args:
-            prompt (str): The prompt to run the data analysis or to
-                create plots or graphs. The prompt will take the form of natural language
-                (e.g. if you want to find a driver_id from driver info, then you can have
-                the prompt as, "Get me the driver_id of driver x from the dataframe")
+            prompt (str): The prompt to run the data analysis. The prompt will take the
+            form of natural language (e.g. if you want to find a driver_id from driver info,
+            then you can have the prompt as, "Get me the driver_id of driver x from the dataframe")
+        Return:
+            Any: The response to the prompt.
+        """
+        if self.last_returned_df.empty:
+            raise RuntimeError("Empty pd.DataFrame being given to PandasAI")
+
+        return self.pandas_ai(self.last_returned_df, prompt)
+
+    def create_chart(self, prompt: str) -> Any:
+        """Function that can create plots or graphs.
+
+        This function cannot fetch any data. It can only be called after getting
+        data from another function first.
+
+        This function has access to the most recently returned pd.DataFrame.
+
+        The chart(s) will be saved and displayed to the user in the application. Your
+        response after this function should mention that the graph has been created and
+        is ready to view
+
+        Args:
+            prompt (str): The prompt to create the plots or graphs. The prompt will take
+            the form of natural language (e.g. if you want to graph driver finishing position,
+            then you can have the prompt as, "Plot the driver finishing position.")
         Return:
             Any: The response to the prompt.
         """
