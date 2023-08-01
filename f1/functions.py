@@ -215,6 +215,46 @@ def get_race_result(season: int, round: int) -> pd.DataFrame:
 
     return race_result
 
+# Qualifying Results functions
+def get_race_qualifying(season: int, round: int) -> pd.DataFrame:
+    """Get the results of a specific qualifying session. It will show the finishing order
+    of all the drivers. It will show position, first name, and last name, constructor, q1 time, q2 time, q3 time.
+
+    Args:
+        season (int): used to specify the year. Not required
+        round (int): used to specify the round. Not required
+    Return:
+        pd.DataFrame: a dataframe representing the qualifying result
+    """
+    url = f"{BASE_URL}/{season}/{round}/qualifying.json"
+
+    response = requests.get(url)
+    data = response.json()
+    qualifying_result = data["MRData"]["RaceTable"]["Races"][0]["QualifyingResults"]
+
+    positions = [x["position"] for x in qualifying_result]
+    first_names = [x["Driver"]["givenName"] for x in qualifying_result]
+    last_names = [x["Driver"]["familyName"] for x in qualifying_result]
+    constructors =  [x["Constructor"]["constructorId"] for x in qualifying_result]
+    print(qualifying_result[1])
+    q1_times = [x["Q1"] for x in qualifying_result]
+    q2_times = None
+    q3_times = None
+    try:
+        q2_times = [x["Q2"] for x in qualifying_result]
+    except:
+        pass
+    try:
+        q3_times = [x["Q3"] for x in qualifying_result]
+    except:
+        pass
+
+    qualifying_result = pd.DataFrame(
+        {"position": positions, "first_name": first_names, "last_names": last_names,  
+         "constructors": constructors,  "q1_times": q1_times ,  "q2_times": q2_times ,  "q3_times": q3_times}
+    )
+
+    return qualifying_result
 
 f1_data: list[Callable[..., Any]] = [
     get_driver_standings,
@@ -222,4 +262,5 @@ f1_data: list[Callable[..., Any]] = [
     get_season_info,
     get_driver_information,
     get_race_result,
+    get_race_qualifying,
 ]
