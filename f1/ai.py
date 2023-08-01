@@ -40,7 +40,7 @@ class FormulaOneAI:
 
         # Create PandasAI object
         llm = OpenAI(api_token=self.api_key)
-        self.pandas_ai = PandasAI(llm)
+        self.pandas_ai = PandasAI(llm, save_charts=True, save_charts_path="f1")
 
     def ask(self, prompt):
         self.messages = [{"role": "system", "content": SYSTEM_CONTENT}]
