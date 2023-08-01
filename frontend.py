@@ -6,6 +6,7 @@ from PIL import Image
 
 from f1.ai import FormulaOneAI
 from f1.functions import f1_data
+from streamlit_helpers import get_directories, get_png_files
 
 load_dotenv()
 
@@ -18,7 +19,7 @@ st.title("Formula One AI")
 response = None
 
 # Directory where the graphs are stored
-dir_name = "f1/graphs"
+dir_name = "f1/exports"
 
 with st.form(key="my_form"):
     user_input = st.text_input(
@@ -34,18 +35,22 @@ with st.form(key="my_form"):
 if response:
     st.markdown(response)
 
-# Get list of all files inside graphs directory
-files = os.listdir(dir_name)
 
-# Get list of all png files
-graphs = [f for f in files if f.endswith(".png")]
+# Get the subdirectories
+subdirectories = get_directories(dir_name)
 
-if graphs:
+if subdirectories:
     st.markdown("**Generated Graphs:**")
-    for graph in graphs:
-        file_path = os.path.join(dir_name, graph)
-        image = Image.open(file_path)
-        st.image(image)
+
+    for subdir in subdirectories:
+        # Get list of all png files in subdirectory
+        graphs = get_png_files(subdir)
+
+        # Display all png files
+        for graph in graphs:
+            file_path = os.path.join(subdir, graph)
+            image = Image.open(file_path)
+            st.image(image)
 
 if f1_ai.messages:
     st.write("---")
