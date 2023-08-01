@@ -19,7 +19,7 @@ st.title("Formula One AI")
 response = None
 
 # Directory where the graphs are stored
-dir_name = "f1/exports"
+dir_name = "f1/exports/charts"
 
 with st.form(key="my_form"):
     user_input = st.text_input(
