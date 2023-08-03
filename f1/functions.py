@@ -216,6 +216,43 @@ def get_race_result(season: int, round: int) -> pd.DataFrame:
     return race_result
 
 
+def driver_season_race_results(season: int, driver_id: str) -> pd.DataFrame:
+    """Get the race results for a specific driver for a season.
+    It will show round number, race name, starint position,
+    and finishing position.
+
+    Do not guess driver_id, if you are unsure, call get_driver_information
+    to find out.
+
+    Args:
+        season (int): used to specify the year.
+        driver_id (int): used to specify the driver_id
+    Return:
+        pd.DataFrame: a dataframe representing the driver's race result
+    """
+    url = f"{BASE_URL}/{season}/drivers/{driver_id}/results.json"
+
+    response = requests.get(url)
+    data = response.json()
+    race_results = data["MRData"]["RaceTable"]["Races"]
+
+    round_numbers = [x["round"] for x in race_results]
+    race_names = [x["raceName"] for x in race_results]
+    finishing_positions = [x["Results"][0]["position"] for x in race_results]
+    starting_positions = [x["Results"][0]["grid"] for x in race_results]
+
+    driver_results = pd.DataFrame(
+        {
+            "round": round_numbers,
+            "race_name": race_names,
+            "finishing_position": finishing_positions,
+            "starting_position": starting_positions,
+        }
+    )
+
+    return driver_results
+
+
 # Qualifying Results functions
 def get_race_qualifying(season: int, round: int) -> pd.DataFrame:
     """Get the results of a specific qualifying session. It will show the finishing order
@@ -264,4 +301,5 @@ f1_data: list[Callable[..., Any]] = [
     get_driver_information,
     get_race_result,
     get_race_qualifying,
+    driver_season_race_results,
 ]
