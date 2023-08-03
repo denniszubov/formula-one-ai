@@ -59,3 +59,8 @@ if f1_ai.messages:
     st.write("---")
     st.markdown("**Messages:**")
     st.write(f1_ai.messages)
+
+if f1_ai.function_schema:
+    st.write("---")
+    st.markdown("**Function Schema:**")
+    st.write(f1_ai.function_schema)

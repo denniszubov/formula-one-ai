@@ -29,12 +29,13 @@ class FormulaOneAI:
         self.messages: list[dict[str, Any]] = []
 
         # Add PandasAI function to input F1 data functions
-        funcs.append(self.data_analysis)
-        funcs.append(self.create_chart)
+        functions = funcs.copy()
+        functions.append(self.data_analysis)
+        functions.append(self.create_chart)
 
         # Generate schemas for GPT and function mappings
-        self.function_schema = generate_schemas(funcs)
-        self.function_mapping = {func.__name__: func for func in funcs}
+        self.function_schema = generate_schemas(functions)
+        self.function_mapping = {func.__name__: func for func in functions}
 
         # Keep track of last called function, last returned dataframe, and last returned function response
         self.last_called_function: str = ""
