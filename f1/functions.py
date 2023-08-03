@@ -215,6 +215,7 @@ def get_race_result(season: int, round: int) -> pd.DataFrame:
 
     return race_result
 
+
 # Qualifying Results functions
 def get_race_qualifying(season: int, round: int) -> pd.DataFrame:
     """Get the results of a specific qualifying session. It will show the finishing order
@@ -235,26 +236,34 @@ def get_race_qualifying(season: int, round: int) -> pd.DataFrame:
     positions = [x["position"] for x in qualifying_result]
     first_names = [x["Driver"]["givenName"] for x in qualifying_result]
     last_names = [x["Driver"]["familyName"] for x in qualifying_result]
-    constructors =  [x["Constructor"]["constructorId"] for x in qualifying_result]
+    constructors = [x["Constructor"]["constructorId"] for x in qualifying_result]
     print(qualifying_result[1])
     q1_times = [x["Q1"] for x in qualifying_result]
     q2_times = None
     q3_times = None
     try:
         q2_times = [x["Q2"] for x in qualifying_result]
-    except:
+    except Exception:
         pass
     try:
         q3_times = [x["Q3"] for x in qualifying_result]
-    except:
+    except Exception:
         pass
 
     qualifying_result = pd.DataFrame(
-        {"position": positions, "first_name": first_names, "last_names": last_names,  
-         "constructors": constructors,  "q1_times": q1_times ,  "q2_times": q2_times ,  "q3_times": q3_times}
+        {
+            "position": positions,
+            "first_name": first_names,
+            "last_names": last_names,
+            "constructors": constructors,
+            "q1_times": q1_times,
+            "q2_times": q2_times,
+            "q3_times": q3_times,
+        }
     )
 
     return qualifying_result
+
 
 f1_data: list[Callable[..., Any]] = [
     get_driver_standings,
