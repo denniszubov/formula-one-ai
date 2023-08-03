@@ -19,17 +19,11 @@ a 4 digit int representing the year of the season for the query. The round
 parameter is a 1 or 2 digit int representing the race round within the season
 for the query.
 
-If you need the round number to get some data but you only know the circuit
-or race name then you can call `get_season_info` first to get the round number
-of that race, and then get the results of other functions using the new round
-number that you just retrieved.
+Do not guess the round number of a race. Call `get_season_info` to get the round number
+of that race.
 
 If you need to know the driver_id of a driver, you can call get_driver_information
 to retrieve driver_ids.
-
-The data_analysis and create_chart functions are able to create plots/graphs or perform data analysis
-on a previously returned dataframe. These functions cannot fetch data, they can only
-work with a dataframe that has been returned by other functions.
 
 Today is {date.today()}
 

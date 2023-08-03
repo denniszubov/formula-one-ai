@@ -29,12 +29,13 @@ class FormulaOneAI:
         self.messages: list[dict[str, Any]] = []
 
         # Add PandasAI function to input F1 data functions
-        funcs.append(self.data_analysis)
-        funcs.append(self.create_chart)
+        functions = funcs.copy()
+        functions.append(self.data_analysis)
+        functions.append(self.create_chart)
 
         # Generate schemas for GPT and function mappings
-        self.function_schema = generate_schemas(funcs)
-        self.function_mapping = {func.__name__: func for func in funcs}
+        self.function_schema = generate_schemas(functions)
+        self.function_mapping = {func.__name__: func for func in functions}
 
         # Keep track of last called function, last returned dataframe, and last returned function response
         self.last_called_function: str = ""
@@ -48,9 +49,15 @@ class FormulaOneAI:
         # Delete any graphs if there are any
         self._delete_all_graphs("f1/exports/charts")
 
+        # Keep track of executed functions for each .ask() call
+        self.executed_functions: list[str] = []
+
     def ask(self, prompt):
         # Delete old graphs
         self._delete_all_graphs("f1/exports/charts")
+
+        # Reset executed functions
+        self.executed_functions = []
 
         # Add initial conversation messages
         self.messages = [{"role": "system", "content": SYSTEM_CONTENT}]
@@ -63,6 +70,10 @@ class FormulaOneAI:
             function_name, kwargs = self._parse_response(response)
             func = self.function_mapping[function_name]
             function_response = func(**kwargs)
+
+            # Save function call
+            function_call = self._stringify_function_call(function_name, kwargs)
+            self.executed_functions.append(function_call)
 
             self.last_called_function = function_name
             self.last_returned_function_response = function_response
@@ -122,6 +133,15 @@ class FormulaOneAI:
             raise RuntimeError("Empty pd.DataFrame being given to PandasAI")
 
         return self.pandas_ai(self.last_returned_df, prompt)
+
+    def _stringify_function_call(
+        self, function_name: str, kwargs: dict[str, Any]
+    ) -> str:
+        kwargs_string = ", ".join(
+            f'{k}="{v}"' if isinstance(v, str) else f"{k}={v}"
+            for k, v in kwargs.items()
+        )
+        return f"{function_name}({kwargs_string})"
 
     def _delete_all_graphs(self, dir_name) -> None:
         """Delete all the previously created graphs"""
