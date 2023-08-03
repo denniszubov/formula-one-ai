@@ -32,7 +32,7 @@ def get_driver_standings(season: int, round: int = 0) -> pd.DataFrame:
     data = response.json()
     drivers = data["MRData"]["StandingsTable"]["StandingsLists"][0]["DriverStandings"]
 
-    positions = [x["position"] for x in drivers]
+    positions = [int(x["position"]) for x in drivers]
     last_names = [x["Driver"]["familyName"] for x in drivers]
     driver_standings = pd.DataFrame(
         {
@@ -70,7 +70,7 @@ def get_constructors_standings(season: int, round: int = 0) -> pd.DataFrame:
         "ConstructorStandings"
     ]
 
-    positions = [x["position"] for x in constructors]
+    positions = [int(x["position"]) for x in constructors]
     constructor_names = [x["Constructor"]["name"] for x in constructors]
     constructors_standings = pd.DataFrame(
         {
@@ -105,7 +105,7 @@ def get_season_info(season: int, cols: list[str]) -> pd.DataFrame:
 
     races = data["MRData"]["RaceTable"]["Races"]
 
-    round_numbers = [x["round"] for x in races]
+    round_numbers = [int(x["round"]) for x in races]
     race_names = [x["raceName"] for x in races]
     dates = [x["date"] for x in races]
     circuit_names = [x["Circuit"]["circuitName"] for x in races]
@@ -205,7 +205,7 @@ def get_race_result(season: int, round: int) -> pd.DataFrame:
     data = response.json()
     race_result = data["MRData"]["RaceTable"]["Races"][0]["Results"]
 
-    positions = [x["position"] for x in race_result]
+    positions = [int(x["position"]) for x in race_result]
     first_names = [x["Driver"]["givenName"] for x in race_result]
     last_names = [x["Driver"]["familyName"] for x in race_result]
 
@@ -274,7 +274,7 @@ def get_race_qualifying(season: int, round: int) -> pd.DataFrame:
     data = response.json()
     qualifying_result = data["MRData"]["RaceTable"]["Races"][0]["QualifyingResults"]
 
-    positions = [x["position"] for x in qualifying_result]
+    positions = [int(x["position"]) for x in qualifying_result]
     first_names = [x["Driver"]["givenName"] for x in qualifying_result]
     last_names = [x["Driver"]["familyName"] for x in qualifying_result]
     constructors = [x["Constructor"]["name"] for x in qualifying_result]
