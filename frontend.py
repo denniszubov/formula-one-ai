@@ -55,12 +55,15 @@ if subdirectories:
             image = Image.open(file_path)
             st.image(image)
 
+if f1_ai.executed_functions:
+    st.write("---")
+    st.markdown("# Functions Executed:")
+    executed_funcs_md = ""
+    for f in f1_ai.executed_functions:
+        executed_funcs_md += f"- {f}\n"
+    st.markdown(executed_funcs_md)
+
 if f1_ai.messages:
     st.write("---")
-    st.markdown("**Messages:**")
+    st.markdown("# Messages:")
     st.write(f1_ai.messages)
-
-if f1_ai.function_schema:
-    st.write("---")
-    st.markdown("**Function Schema:**")
-    st.write(f1_ai.function_schema)
