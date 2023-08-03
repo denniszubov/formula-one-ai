@@ -44,7 +44,9 @@ class FormulaOneAI:
 
         # Create PandasAI object
         llm = OpenAI(api_token=self.api_key)
-        self.pandas_ai = PandasAI(llm, save_charts=True, save_charts_path="f1")
+        self.pandas_ai = PandasAI(
+            llm, save_charts=True, save_charts_path="f1", enable_cache=False
+        )
 
         # Delete any graphs if there are any
         self._delete_all_graphs("f1/exports/charts")
@@ -73,6 +75,7 @@ class FormulaOneAI:
 
             # Save function call
             function_call = self._stringify_function_call(function_name, kwargs)
+            print(f"Calling {function_call}")
             self.executed_functions.append(function_call)
 
             self.last_called_function = function_name
@@ -131,7 +134,6 @@ class FormulaOneAI:
         """
         if self.last_returned_df.empty:
             raise RuntimeError("Empty pd.DataFrame being given to PandasAI")
-
         return self.pandas_ai(self.last_returned_df, prompt)
 
     def _stringify_function_call(
@@ -212,7 +214,10 @@ class FormulaOneAI:
             if response.empty:
                 return "{}"
             return response.to_json()
-        return json.dumps(response)
+        try:
+            return json.dumps(response)
+        except TypeError:
+            return str(response)
 
     def _get_token_length(self, prompt: str) -> int:
         """Get the token length of the given prompt

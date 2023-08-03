@@ -236,15 +236,18 @@ def driver_season_race_results(season: int, driver_id: str) -> pd.DataFrame:
     data = response.json()
     race_results = data["MRData"]["RaceTable"]["Races"]
 
-    round_numbers = [x["round"] for x in race_results]
-    race_names = [x["raceName"] for x in race_results]
-    finishing_positions = [x["Results"][0]["position"] for x in race_results]
-    starting_positions = [x["Results"][0]["grid"] for x in race_results]
+    round_numbers = [int(x["round"]) for x in race_results]
+    driver_name = [
+        f'{x["Results"][0]["Driver"]["givenName"]} {x["Results"][0]["Driver"]["familyName"]}'
+        for x in race_results
+    ]
+    finishing_positions = [int(x["Results"][0]["position"]) for x in race_results]
+    starting_positions = [int(x["Results"][0]["grid"]) for x in race_results]
 
     driver_results = pd.DataFrame(
         {
             "round": round_numbers,
-            "race_name": race_names,
+            "driver_name": driver_name,
             "finishing_position": finishing_positions,
             "starting_position": starting_positions,
         }
