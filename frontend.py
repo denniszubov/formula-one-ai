@@ -24,7 +24,7 @@ dir_name = "f1/exports/charts"
 with st.form(key="my_form"):
     user_input = st.text_input(
         "Formula 1 Question:",
-        "Who won the 2023 Spanish Grand Prix?",
+        "Make a line graph showing Sergio Perez's finishing positions for this year",
     )
     submit_button = st.form_submit_button("Submit")
     question = user_input.strip()
