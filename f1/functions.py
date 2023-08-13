@@ -190,8 +190,10 @@ def get_driver_information(
 
 # Race Results functions
 def get_race_result(season: int, round: int) -> pd.DataFrame:
-    """Get the results of a specific race. It will show the finishing order
-    of all the drivers. It will show position, first name, and last name
+    """Get the results of a specific race. The function returns a DataFrame
+    containing the finishing order of all the drivers. The DataFrame includes
+    columns for position, grid position, first name, last name, points,
+    race status, fastest lap number, fastest lap time, and race time.
 
     Args:
         season (int): used to specify the year. Not required
@@ -205,12 +207,32 @@ def get_race_result(season: int, round: int) -> pd.DataFrame:
     data = response.json()
     race_result = data["MRData"]["RaceTable"]["Races"][0]["Results"]
 
+    grid_positions = [int(x["grid"]) for x in race_result]
     positions = [int(x["position"]) for x in race_result]
+    points = [int(x["points"]) for x in race_result]
     first_names = [x["Driver"]["givenName"] for x in race_result]
     last_names = [x["Driver"]["familyName"] for x in race_result]
+    fastest_lap_times = [
+        x.get("FastestLap", {}).get("Time", {}).get("time", None) for x in race_result
+    ]
+    fastest_lap_numbers = [
+        x.get("FastestLap", {}).get("lap", None) for x in race_result
+    ]
+    race_times = [x.get("Time", {}).get("time", None) for x in race_result]
+    statuses = [x["status"] for x in race_result]
 
     race_result = pd.DataFrame(
-        {"position": positions, "first_name": first_names, "last_names": last_names}
+        {
+            "position": positions,
+            "grid_position": grid_positions,
+            "first_name": first_names,
+            "last_name": last_names,
+            "points": points,
+            "status": statuses,
+            "fastest_lap_number": fastest_lap_numbers,
+            "fastest_lap_time": fastest_lap_times,
+            "race_time": race_times,
+        }
     )
 
     return race_result
@@ -297,6 +319,39 @@ def get_race_qualifying(season: int, round: int) -> pd.DataFrame:
     return qualifying_result
 
 
+def get_driver_lap_times(season: int, round: int, driver: str) -> pd.DataFrame:
+    """Get the lap times of a  specific driver in a race. It will show the lap number and the lap time
+    for the driver throughout that race.
+
+     Args:
+         season (int): used to specify the year.
+         round (int): used to specify the round.
+         round (str): used to specify the driver.
+     Return:
+         pd.DataFrame: a dataframe representing the drivers lap times
+    """
+    url = f"{BASE_URL}/{season}/{round}/drivers/{driver}/laps.json"
+
+    response = requests.get(url)
+    data = response.json()
+    lap_times = data["MRData"]["RaceTable"]["Races"][0]["Laps"]
+
+    lap_numbers = [int(lap["number"]) for lap in lap_times]
+    lap_timings = [lap["Timings"][0]["time"] for lap in lap_times]
+
+    print(lap_timings)
+    print(lap_numbers)
+
+    driver_lap_times = pd.DataFrame(
+        {
+            "lap_number": lap_numbers,
+            "lap_timings": lap_timings,
+        }
+    )
+
+    return driver_lap_times
+
+
 f1_data: list[Callable[..., Any]] = [
     get_driver_standings,
     get_constructors_standings,
@@ -304,5 +359,6 @@ f1_data: list[Callable[..., Any]] = [
     get_driver_information,
     get_race_result,
     get_race_qualifying,
+    get_driver_lap_times,
     driver_season_race_results,
 ]
